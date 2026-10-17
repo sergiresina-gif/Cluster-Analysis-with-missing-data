@@ -1,0 +1,58 @@
+<<libraries, include=FALSE>>=
+load("/home/rogerg/Cluster-Analysis-with-missing-data/copd_redux.RData")
+
+library(mice)
+mice::md.pattern(copd, rotate.names = TRUE)
+
+M <- 100
+ini <- mice(copd, maxit = 0)
+?mice
+ini
+# id es fa servir per inferir, id, quo_calcpostv1 i fvcp_postv1 no tenen forats.
+# s'ha d'estudiar la possibilitat de variables depenents deterministicament, és 
+# la classe de putada que ens faria el professor.
+# estudiar també els metodes proposats.
+
+# potser amb ignore és més bonic però no el fa servir als apunts
+pred <- ini$predictorMatrix
+pred["id", ] <- 0 # we don't want "id" to be imputed
+pred[, "id"] <- 0 # we don't want "id" to be predictor
+pred
+
+imp <- mice(copd,
+            m = M,
+            method = ini$meth,
+            predictorMatrix = pred,
+            printFlag = FALSE,
+            seed = 666)
+imp
+imp$imp
+
+resultat_mice<-complete(imp, action="all", include=TRUE)
+
+# factor amb ordre -> as.numeric(levels(f))[f]
+# factor sense ordre -> one_hot_encoding
+# de moment faig tot amb ordre
+# sin11_v1 iam_chv1 sin15_v1 sin7_v1 sin8_v1 cccs1_v0 vtit_catv1 urg_ambv0 sin5_v1 sin6_v1 graudisn_v1
+# tots 1 menys graudisn_v1 que té 6.
+categorics_amb_ordre <- c("sin11_v1", "iam_chv1", "sin15_v1", "sin7_v1", "sin8_v1","cccs1_v0", "vtit_catv1", "urg_ambv0", "sin5_v1", "sin6_v1")
+categorics_sense_ordre <- c("graudisn_v1")
+for (i in 1:(M+1))
+{
+  for (j in categorics_amb_ordre)
+  {
+    resultat_mice[[i]][[j]] <- as.numeric(levels(resultat_mice[[i]][[j]]))[resultat_mice[[i]][[j]]]
+  }
+  for (j in categorics_sense_ordre)
+  {
+    #nomes hi ha graudisn_v1 i per tant programaré el onehot nomes si és estrictament necessari.
+    resultat_mice[[i]][[j]] <- as.numeric(levels(resultat_mice[[i]][[j]]))[resultat_mice[[i]][[j]]]
+  }
+}
+
+library(miclust)
+miclustdata<-getdata(resultat_mice)
+
+# ------------MULTIPLE IMPUTATION ACABA AQUI------------
+res_mi_clust<-miclust(miclustdata, search = "backward", ks=2:10)
+@
