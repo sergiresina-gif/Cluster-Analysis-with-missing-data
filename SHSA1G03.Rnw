@@ -1,12 +1,65 @@
+\documentclass[a4paper,10pt]{article}
+\usepackage[utf8]{inputenc}
+
+\title{My title}
+\author{My name}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\section{Description of missingness}
+
 <<libraries, include=FALSE>>=
-load("/home/rogerg/Cluster-Analysis-with-missing-data/copd_redux.RData")
+### libraries related to knit:
+library(knitr)
+library(xtable)     # to create nice LaTeX tables
+@
+
+<<data, include=FALSE>>=
+load("C:/Users/alexv/Desktop/MatCAD_Quart/Mètodes d’Anàlisi en Ciències de la Salut/Entreges/SHS_Assignment_1/Cluster-Analysis-with-missing-data/copd_redux.RData")
+
+# load("/home/rogerg/Cluster-Analysis-with-missing-data/copd_redux.RData")
+@
+
+<<missingness, echo=TRUE>>=
+
+n_participants <- nrow(copd)
+n_variables <- ncol(copd)
+missing_per_variable <- colMeans(is.na(copd)) * 100
+
+min_missing <- sprintf("%.1f", min(missing_per_variable))
+max_missing <- sprintf("%.1f", max(missing_per_variable))
+
+pct_variables_lt5 <- sprintf("%.1f", mean(missing_per_variable < 5) * 100) # mean calcula la proporció de true
+# equivalent: AA <- sprintf("%.1f", sum((missing_per_variable < 5))/n_variables * 100) # true=1, false=0
+ 
+pct_complete_cases <- sprintf("%.1f", mean(complete.cases(copd)) * 100)
+pct_missing_total <- sprintf("%.1f", mean(is.na(as.matrix(copd))) * 100)
+
+total_cells <- prettyNum(n_participants * n_variables, big.mark=",") # n_participants * n_variables = total_cells
+@
+
+The subset used here included \Sexpr{n_participants} participants and \Sexpr{n_variables} variables. The range of missing data in the different variables went from \Sexpr{min_missing}\% to \Sexpr{max_missing}\%, with \Sexpr{pct_variables_lt5}\% of the variables having less than 5\% of the data missing. Only \Sexpr{pct_complete_cases}\% of the participants had complete data on all \Sexpr{n_variables} variables. Overall, \Sexpr{pct_missing_total}\% of the information was missing; that is, \Sexpr{pct_missing_total}\% of the total of
+\Sexpr{total_cells} cells (\Sexpr{n_variables} x \Sexpr{n_participants} = \Sexpr{total_cells}) had missing data.
+
+
+
+
+
+
+\section{Multiple imputation}
+
+
+
+<<multiple_imputation, include=FALSE>>=
 
 library(mice)
 mice::md.pattern(copd, rotate.names = TRUE)
 
 M <- 100
 ini <- mice(copd, maxit = 0)
-?mice
+# ?mice
 ini
 # id es fa servir per inferir, id, quo_calcpostv1 i fvcp_postv1 no tenen forats.
 # s'ha d'estudiar la possibilitat de variables depenents deterministicament, és 
@@ -56,3 +109,6 @@ miclustdata<-getdata(resultat_mice)
 # ------------MULTIPLE IMPUTATION ACABA AQUI------------
 res_mi_clust<-miclust(miclustdata, search = "backward", ks=2:10)
 @
+
+
+\end{document}
