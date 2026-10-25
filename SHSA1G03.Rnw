@@ -1,5 +1,6 @@
 \documentclass[a4paper,10pt]{article}
 \usepackage[utf8]{inputenc}
+\usepackage[margin=2.5cm]{geometry}
 
 \title{My title}
 \author{My name}
@@ -8,8 +9,8 @@
 \begin{document}
 \maketitle
 
-\section{Description of missingness}
-
+\section{Analysis}
+\subsection{Description of missingness}
 <<libraries, include=FALSE>>=
 ### libraries related to knit:
 library(knitr)
@@ -17,9 +18,7 @@ library(xtable)     # to create nice LaTeX tables
 @
 
 <<data, include=FALSE>>=
-load("C:/Users/alexv/Desktop/MatCAD_Quart/Mètodes d’Anàlisi en Ciències de la Salut/Entreges/SHS_Assignment_1/Cluster-Analysis-with-missing-data/copd_redux.RData")
-
-# load("/home/rogerg/Cluster-Analysis-with-missing-data/copd_redux.RData")
+load("C:/Users/alexv/Desktop/MatCAD_Quart/Mètodes d’Anàlisi en Ciències de la Salut/Entreges/SHS_Assignment_1/copd_redux.RData")
 @
 
 <<missingness, echo=TRUE>>=
@@ -43,71 +42,115 @@ total_cells <- prettyNum(n_participants * n_variables, big.mark=",") # n_partici
 The subset used here included \Sexpr{n_participants} participants and \Sexpr{n_variables} variables. The range of missing data in the different variables went from \Sexpr{min_missing}\% to \Sexpr{max_missing}\%, with \Sexpr{pct_variables_lt5}\% of the variables having less than 5\% of the data missing. Only \Sexpr{pct_complete_cases}\% of the participants had complete data on all \Sexpr{n_variables} variables. Overall, \Sexpr{pct_missing_total}\% of the information was missing; that is, \Sexpr{pct_missing_total}\% of the total of
 \Sexpr{total_cells} cells (\Sexpr{n_variables} x \Sexpr{n_participants} = \Sexpr{total_cells}) had missing data.
 
+\subsection{Multiple imputation}
+Apply multiple imputation to copd data using 100 imputations. Explain in a reasoned
+manner how you decided to set the values of the arguments method and predictorMatrix
+when using the mice() function. Show your code
 
-
-
-
-
-\section{Multiple imputation}
-
-
-
-<<multiple_imputation, include=FALSE>>=
-
+<<libraries2, include=FALSE>>=
 library(mice)
-mice::md.pattern(copd, rotate.names = TRUE)
+@
 
-M <- 100
+<<multiple_imputation, echo=TRUE>>=
+
 ini <- mice(copd, maxit = 0)
-# ?mice
-ini
-# id es fa servir per inferir, id, quo_calcpostv1 i fvcp_postv1 no tenen forats.
-# s'ha d'estudiar la possibilitat de variables depenents deterministicament, és 
-# la classe de putada que ens faria el professor.
-# estudiar també els metodes proposats.
 
-# potser amb ignore és més bonic però no el fa servir als apunts
+meth <- ini$method
 pred <- ini$predictorMatrix
+
+meth["id"] <- "" # do not impute "id"
 pred["id", ] <- 0 # we don't want "id" to be imputed
 pred[, "id"] <- 0 # we don't want "id" to be predictor
-pred
 
-imp <- mice(copd,
-            m = M,
-            method = ini$meth,
-            predictorMatrix = pred,
-            printFlag = FALSE,
-            seed = 666)
-imp
-imp$imp
+# Fem les 100 imputacions:
+imp <- mice(copd, method = meth, predictorMatrix = pred, m = 100, printFlag = FALSE, seed = 123)
+@
 
-resultat_mice<-complete(imp, action="all", include=TRUE)
 
-# factor amb ordre -> as.numeric(levels(f))[f]
-# factor sense ordre -> one_hot_encoding
-# de moment faig tot amb ordre
-# sin11_v1 iam_chv1 sin15_v1 sin7_v1 sin8_v1 cccs1_v0 vtit_catv1 urg_ambv0 sin5_v1 sin6_v1 graudisn_v1
-# tots 1 menys graudisn_v1 que té 6.
-categorics_amb_ordre <- c("sin11_v1", "iam_chv1", "sin15_v1", "sin7_v1", "sin8_v1","cccs1_v0", "vtit_catv1", "urg_ambv0", "sin5_v1", "sin6_v1")
-categorics_sense_ordre <- c("graudisn_v1")
-for (i in 1:(M+1))
-{
-  for (j in categorics_amb_ordre)
-  {
-    resultat_mice[[i]][[j]] <- as.numeric(levels(resultat_mice[[i]][[j]]))[resultat_mice[[i]][[j]]]
-  }
-  for (j in categorics_sense_ordre)
-  {
-    #nomes hi ha graudisn_v1 i per tant programaré el onehot nomes si és estrictament necessari.
-    resultat_mice[[i]][[j]] <- as.numeric(levels(resultat_mice[[i]][[j]]))[resultat_mice[[i]][[j]]]
-  }
-}
+\subsection{Integration of multiple imputation in cluster analysis}
 
+Reproduce the original analysis in the paper using the miclust package to integrate multiple
+imputation in the cluster analysis. Apply the proposed framework using the same setting
+than in the original analysis.
+
+To do that, follow these steps:
+<<libraries3, include=FALSE>>=
 library(miclust)
-miclustdata<-getdata(resultat_mice)
+@
 
-# ------------MULTIPLE IMPUTATION ACABA AQUI------------
-res_mi_clust<-miclust(miclustdata, search = "backward", ks=2:10)
+1. Read the help of the getdata() function in the miclust package. Then, accordingly,
+create a list of data.frames and pass it to the getdata() function. Give a detailed
+explanation of the data processing you did to get that list. Show your code.
+
+<<integration, echo=TRUE>>=
+
+resultat_mice <- complete(imp, action = "all", include = TRUE)
+# action = "all" ja em posa les dades incials com a primer element
+
+categoriques <- c(
+  "sin11_v1", "iam_chv1", "sin15_v1", "sin7_v1", "sin8_v1",
+  "cccs1_v0", "vtit_catv1", "urg_ambv0", "sin5_v1",
+  "sin6_v1", "graudisn_v1"
+)
+
+resultat_mice <- lapply(resultat_mice, function(d) {
+  d$id <- NULL
+  d[categoriques] <- lapply(d[categoriques], function(x)
+    as.numeric(as.character(x)))
+  d
+})
+
+miclustdata <- getdata(resultat_mice) # adapta les dades al format de miclust
+@
+
+2. Use the miclust() function to perform the integration of missing data in cluster
+analysis using the same settings as in the original analysis. Show your code and
+explain how and why you set all arguments in the miclust() function.
+
+<<integration2, echo=TRUE>>=
+# Segon apartat:  
+copd_miclustdata <- miclust(data = miclustdata,search = "backward",
+                            ks = 2:3,
+                            distance = "manhattan",
+                            centpos = "means",
+                            initcl = "hc",
+                            verbose = TRUE,
+                            seed = 123)
+
+@
+
+\section{Results}
+Using plot() and summary() methods in the miclust package, provide plots1 and tables
+for the results similar than those shown in the original paper. Also, show a barplot for the
+percentage of times each variable is selected among the imputed data sets, in decreasing
+order2. Explain how you set all arguments in all functions and methods you use. Show
+your code.
+
+<<Results, echo=TRUE>>=
+### plot results:
+plot(copd_miclustdata,
+col.nclfreq = "blue",
+col.critcf = "orange",
+col.nvarfreq = "forestgreen")
+
+summary(copd_miclustdata, quantilevars = 0.5)
+y <- getvariablesfrequency(copd_miclustdata)
+
+# plot skeleton:
+par(las = 1)
+plot(y$percfreq, type = "n", main = "",
+xlab = "Variable", ylab = "Percentage of times selected",
+xlim = 0.5 + c(0, length(y$varnames)),
+lwd = 5, col = "blue",
+xaxt = "n", yaxt = "n") # for customized axes
+# customized axes:
+axis(1, at = 1:length(y$varnames), labels = y$varnames, las = 2)
+aty <- 10 * (0:10)
+axis(2, at = aty)
+# background grid:
+abline(h = aty, lty = 2, col = "gray")
+# data bars:
+lines(y$percfreq, type = "h", lwd = 5, col = "blue")
 @
 
 
