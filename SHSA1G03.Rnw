@@ -18,7 +18,7 @@ library(xtable)     # to create nice LaTeX tables
 @
 
 <<data, include=FALSE>>=
-load("C:/Users/alexv/Desktop/MatCAD_Quart/Mètodes d’Anàlisi en Ciències de la Salut/Entreges/SHS_Assignment_1/copd_redux.RData")
+load("copd_redux.RData")
 @
 
 <<missingness, echo=TRUE>>=
@@ -51,7 +51,7 @@ when using the mice() function. Show your code
 library(mice)
 @
 
-<<multiple_imputation, echo=TRUE>>=
+<<multiple_imputation, echo=TRUE, cache=TRUE>>=
 
 ini <- mice(copd, maxit = 0)
 
@@ -66,6 +66,9 @@ pred[, "id"] <- 0 # we don't want "id" to be predictor
 imp <- mice(copd, method = meth, predictorMatrix = pred, m = 100, printFlag = FALSE, seed = 123)
 @
 
+Resposta: Hem mantingut el mètode i la matriu de prediccions amb l'excepció de l'id, ja que no es rellevant per
+al procediment. El valor de la 'm' és el nombre d'imputacions, printFlag es per mostrar en quina imputació està,
+que tampoc és important pels resultats, i la 'seed' és per a una facil replicació dels resultats.
 
 \subsection{Integration of multiple imputation in cluster analysis}
 
@@ -82,7 +85,7 @@ library(miclust)
 create a list of data.frames and pass it to the getdata() function. Give a detailed
 explanation of the data processing you did to get that list. Show your code.
 
-<<integration, echo=TRUE>>=
+<<integration, echo=TRUE, cache=TRUE>>=
 
 resultat_mice <- complete(imp, action = "all", include = TRUE)
 # action = "all" ja em posa les dades incials com a primer element
@@ -103,11 +106,19 @@ resultat_mice <- lapply(resultat_mice, function(d) {
 miclustdata <- getdata(resultat_mice) # adapta les dades al format de miclust
 @
 
+Resposta: Com 'getdata()' necessita una llista de dataframes, on el primer element
+conté les dades inicials i els següents les imputacions, hem cridat a la funció 'complete'
+que retorna just allò, amb "action='all'" i "include=TRUE" que és el que demana aquesta 
+funció per a retornar el que volem. A més ens cal adaptar les variables categòriques com
+a numèriques, aleshores definim una funció que transforma els valors en text a valors numèrics,
+i aplicant la funció amb 'lapply()' amb una llista de les variables categòriques, aconseguim
+la llista de dataframes que demana la funció 'getdata()'. \\
+
 2. Use the miclust() function to perform the integration of missing data in cluster
 analysis using the same settings as in the original analysis. Show your code and
 explain how and why you set all arguments in the miclust() function.
 
-<<integration2, echo=TRUE>>=
+<<integration2, echo=TRUE, cache=TRUE>>=
 # Segon apartat:  
 copd_miclustdata <- miclust(data = miclustdata,search = "backward",
                             ks = 2:3,
@@ -119,6 +130,15 @@ copd_miclustdata <- miclust(data = miclustdata,search = "backward",
 
 @
 
+Resposta: Els elements escollits han estat els següents: 
+'backward', ja que és el que s'ens va instruir a classe
+'ks = 2:3', l'article ja donava a entendre que un valor de clusters molt elevat careix de sentit
+'manhattan', és l'opció per defecte
+'means', estem utilitzant l'algorisme de k-means
+'hc', hem decidit que l'inicialització sigui jeràrquica en lloc de a l'atzar per a millors resultats
+'verbose = TRUE', d'aquesta manera mostrem el progrés d'aquest procés tan llarg
+'seed = 123', per a una facil replicació dels resultats
+
 \section{Results}
 Using plot() and summary() methods in the miclust package, provide plots1 and tables
 for the results similar than those shown in the original paper. Also, show a barplot for the
@@ -126,32 +146,95 @@ percentage of times each variable is selected among the imputed data sets, in de
 order2. Explain how you set all arguments in all functions and methods you use. Show
 your code.
 
-<<Results, echo=TRUE>>=
+<<plots, echo=TRUE>>=
 ### plot results:
-plot(copd_miclustdata,
-col.nclfreq = "blue",
-col.critcf = "orange",
-col.nvarfreq = "forestgreen")
+plot(copd_miclustdata, metric="nclfreq", col.nclfreq = "blue")
+plot(copd_miclustdata, metric="critcf", col.critcf = "orange")
+plot(copd_miclustdata, metric="nvarfreq", col.nvarfreq = "forestgreen")
+plot(copd_miclustdata, metric="varsel", col.varsel = "gray")
 
-summary(copd_miclustdata, quantilevars = 0.5)
-y <- getvariablesfrequency(copd_miclustdata)
-
-# plot skeleton:
-par(las = 1)
-plot(y$percfreq, type = "n", main = "",
-xlab = "Variable", ylab = "Percentage of times selected",
-xlim = 0.5 + c(0, length(y$varnames)),
-lwd = 5, col = "blue",
-xaxt = "n", yaxt = "n") # for customized axes
-# customized axes:
-axis(1, at = 1:length(y$varnames), labels = y$varnames, las = 2)
-aty <- 10 * (0:10)
-axis(2, at = aty)
-# background grid:
-abline(h = aty, lty = 2, col = "gray")
-# data bars:
-lines(y$percfreq, type = "h", lwd = 5, col = "blue")
 @
 
+Resposta: Els plots només calia definir els colors per a mostrar-ho
+
+<<mytable1, echo=TRUE, results = 'asis'>>=
+
+res2 <- summary(copd_miclustdata, k = 2, quantilevars = 0.5)
+res3 <- summary(copd_miclustdata, k = 3, quantilevars = 0.5)
+
+resum_prob <- rbind(res2$allocationprobabilities, res3$allocationprobabilities)
+
+rownames(resum_prob) <- c("k = 2, Cluster 1",
+                          "k = 2, Cluster 2",
+                          "k = 3, Cluster 1",
+                          "k = 3, Cluster 2",
+                          "k = 3, Cluster 3")
+
+modtable <- xtable(resum_prob,
+                   digits = c(0, 3, 3, 3, 3, 3),
+                   caption = "Distribution of the Frequencies of Assignment (Proportions) for Each Cluster (for k = 2 and k = 3)",
+                   label = "tab:frequency")
+# cosmetics for table head (LaTeX slash (\) must be doubled inside a R chunk):
+colnames(modtable) <- c("\\multicolumn{1}{c}{\\bf Minimum}",
+                        "\\multicolumn{1}{c}{\\bf First Quartile}",
+                        "\\multicolumn{1}{c}{\\bf Median}",
+                        "\\multicolumn{1}{c}{\\bf Third Quartile}",
+                        "\\multicolumn{1}{c}{\\bf Maximum}")
+
+# format and print the table:
+print(modtable,
+      table.placement = "ht",
+      size = "footnotesize",
+      include.rownames = TRUE,
+      include.colnames = TRUE,
+      floating = TRUE,                 # whether \begin{table} should be created (TRUE) or not (FALSE)
+      sanitize.text.function = force)  # important to treat content of columns as latex function
+
+@
+
+Resposta: Per fer la primera taula hem utilitzat la funció 'summary()' per als 
+diferents valors de 'k', i utilitzant la plantilla per a fer taules proporcionada
+pel professorat, hem mostrat aquest resultat.
+
+<<mytable2, echo=TRUE, results = 'asis'>>=
+
+descr <- as.data.frame(res2$summarybycluster)
+
+taula3 <- data.frame(Variable = gsub("_", "\\\\_", rownames(descr)),
+                     Missing = as.numeric(descr[["%miss."]]),
+                     Cluster1 = as.numeric(descr[["mean (cl.1)"]]),
+                     Cluster2 = as.numeric(descr[["mean (cl.2)"]]),
+                     check.names = FALSE
+)
+
+n <- res2$clusterssize[, "50%"] # Valor del nombre medià dels clusters
+
+modtable <- xtable(taula3,
+                   digits = c(0, 0, 2, 2, 2),
+                   caption = "Description of the Variables (Mean Values) by Cluster",
+                   label = "tab:descr")
+# cosmetics for table head (LaTeX slash (\) must be doubled inside a R chunk):
+colnames(modtable) <- c("\\multicolumn{1}{c}{\\bf Variable}",
+                        "\\multicolumn{1}{c}{\\bf \\% of Subjects With Missing Values}",
+                        paste0("\\multicolumn{1}{c}{\\bf Cluster 1 (n = ", n[1], ")}"), #paste0 per a ajuntar strings
+                        paste0("\\multicolumn{1}{c}{\\bf Cluster 2 (n = ", n[2], ")}"))
+
+# format and print the table:
+print(modtable,
+      table.placement = "ht",
+      size = "footnotesize",
+      include.rownames = FALSE,
+      include.colnames = TRUE,
+      floating = TRUE,                 # whether \begin{table} should be created (TRUE) or not (FALSE)
+      sanitize.text.function = force)  # important to treat content of columns as latex function
+
+@
+
+Resposta: Per a la segona taula no hem inclós els 'F values' ni hem utilitzat les dades
+sense processar per a fer un anàlisi dels valors mitjans, però hem inclós els altres
+resultats presents en la funció 'summary()' per a mostrar el mateix contingut per a 
+les dades imputades. Per a fer-ho ha calgut crear un 'dataframe' auxiliar del 'summary' 
+per a obtenir un altre amb les variables que dessitjem. A més hem obtingut el valor medià
+dels clusters tal i com es fa en el paper original.
 
 \end{document}
