@@ -146,13 +146,20 @@ percentage of times each variable is selected among the imputed data sets, in de
 order2. Explain how you set all arguments in all functions and methods you use. Show
 your code.
 
-<<plots, echo=TRUE>>=
-### plot results:
+<<plot1, echo=TRUE, fig.cap="Frequencia del nombre de clusters">>=
 plot(copd_miclustdata, metric="nclfreq", col.nclfreq = "blue")
-plot(copd_miclustdata, metric="critcf", col.critcf = "orange")
-plot(copd_miclustdata, metric="nvarfreq", col.nvarfreq = "forestgreen")
-plot(copd_miclustdata, metric="varsel", col.varsel = "gray")
+@
 
+<<plot2, echo=TRUE, fig.cap="Valor de CritCF segons el nombre de clusters">>=
+plot(copd_miclustdata, metric="critcf", col.critcf = "orange")
+@
+
+<<plot3, echo=TRUE, fig.cap="Freqüència de selecció del nombre de variables en les imputacions múltiples">>=
+plot(copd_miclustdata, metric="nvarfreq", col.nvarfreq = "forestgreen")
+@
+
+<<plot4, echo=TRUE, fig.cap="Freqüència de selecció de les variables en les imputacions múltiples">>=
+plot(copd_miclustdata, metric="varsel", col.varsel = "gray")
 @
 
 Resposta: Els plots només calia definir els colors per a mostrar-ho
