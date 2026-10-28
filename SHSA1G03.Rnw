@@ -1,20 +1,27 @@
 \documentclass[a4paper,10pt]{article}
 \usepackage[utf8]{inputenc}
 \usepackage[margin=2.5cm]{geometry}
+\usepackage{float}
 
 \title{My title}
 \author{My name}
 \date{\today}
 
 \begin{document}
+%\SweaveOpts{concordance=TRUE}
 \maketitle
+
+\section{Introduction}
+
+In this study we will investigate how to use R packages such as mice and miclust to apply statistical tools for missing data. Our goal is to generate clusters to analyze and visualize our dataset. This dataset is a subset of the variables studied in the original paper by Basagaña et al.CITA AQUI 
+
 
 \section{Analysis}
 \subsection{Description of missingness}
 <<libraries, include=FALSE>>=
 ### libraries related to knit:
 library(knitr)
-library(xtable)     # to create nice LaTeX tables
+library(xtable)
 @
 
 <<data, include=FALSE>>=
@@ -30,13 +37,16 @@ missing_per_variable <- colMeans(is.na(copd)) * 100
 min_missing <- sprintf("%.1f", min(missing_per_variable))
 max_missing <- sprintf("%.1f", max(missing_per_variable))
 
-pct_variables_lt5 <- sprintf("%.1f", mean(missing_per_variable < 5) * 100) # mean calcula la proporció de true
-# equivalent: AA <- sprintf("%.1f", sum((missing_per_variable < 5))/n_variables * 100) # true=1, false=0
+pct_variables_lt5 <- sprintf("%.1f", mean(missing_per_variable < 5) * 100) # mean
+# calcula la proporció de true
+# equivalent: AA <- sprintf("%.1f", sum((missing_per_variable < 5))/n_variables * 100)
+# true=1, false=0
  
 pct_complete_cases <- sprintf("%.1f", mean(complete.cases(copd)) * 100)
 pct_missing_total <- sprintf("%.1f", mean(is.na(as.matrix(copd))) * 100)
 
-total_cells <- prettyNum(n_participants * n_variables, big.mark=",") # n_participants * n_variables = total_cells
+total_cells <- prettyNum(n_participants * n_variables, big.mark=",") # n_participants
+                                                    # * n_variables = total_cells
 @
 
 The subset used here included \Sexpr{n_participants} participants and \Sexpr{n_variables} variables. The range of missing data in the different variables went from \Sexpr{min_missing}\% to \Sexpr{max_missing}\%, with \Sexpr{pct_variables_lt5}\% of the variables having less than 5\% of the data missing. Only \Sexpr{pct_complete_cases}\% of the participants had complete data on all \Sexpr{n_variables} variables. Overall, \Sexpr{pct_missing_total}\% of the information was missing; that is, \Sexpr{pct_missing_total}\% of the total of
@@ -63,12 +73,14 @@ pred["id", ] <- 0 # we don't want "id" to be imputed
 pred[, "id"] <- 0 # we don't want "id" to be predictor
 
 # Fem les 100 imputacions:
-imp <- mice(copd, method = meth, predictorMatrix = pred, m = 100, printFlag = FALSE, seed = 123)
+imp <- mice(copd, method = meth, predictorMatrix = pred, m = 100,
+            printFlag = FALSE, seed = 123)
 @
 
-Resposta: Hem mantingut el mètode i la matriu de prediccions amb l'excepció de l'id, ja que no es rellevant per
-al procediment. El valor de la 'm' és el nombre d'imputacions, printFlag es per mostrar en quina imputació està,
-que tampoc és important pels resultats, i la 'seed' és per a una facil replicació dels resultats.
+We've kept using the same methodology and the prediction matrix, with the exception of id as it isn't relevant for this process.
+The variable 'm' encodes de number of imputations, 'printFlag' is used to show the current imputation although it's not important for the results,
+and the 'seed' is set up for replicability. 
+
 
 \subsection{Integration of multiple imputation in cluster analysis}
 
@@ -106,13 +118,13 @@ resultat_mice <- lapply(resultat_mice, function(d) {
 miclustdata <- getdata(resultat_mice) # adapta les dades al format de miclust
 @
 
-Resposta: Com 'getdata()' necessita una llista de dataframes, on el primer element
-conté les dades inicials i els següents les imputacions, hem cridat a la funció 'complete'
-que retorna just allò, amb "action='all'" i "include=TRUE" que és el que demana aquesta 
-funció per a retornar el que volem. A més ens cal adaptar les variables categòriques com
-a numèriques, aleshores definim una funció que transforma els valors en text a valors numèrics,
-i aplicant la funció amb 'lapply()' amb una llista de les variables categòriques, aconseguim
-la llista de dataframes que demana la funció 'getdata()'. \\
+As 'getdata()' necessitates a list of dataframes, where the first
+element has the initial data and the imputations are stored in the subsequent elements,
+we call the 'complete' function that returns the needed information when using
+"action=all" and "include=TRUE". Furthermore, we must adapt the categorical
+variables to numerical values. Thus we define a function that transforms the values stored
+in text into numbers and using the 'lapply()' function, we reach our goal: the list of dataframes that 'getdata()' needs.
+
 
 2. Use the miclust() function to perform the integration of missing data in cluster
 analysis using the same settings as in the original analysis. Show your code and
@@ -130,14 +142,14 @@ copd_miclustdata <- miclust(data = miclustdata,search = "backward",
 
 @
 
-Resposta: Els elements escollits han estat els següents: 
-'backward', ja que és el que s'ens va instruir a classe
-'ks = 2:3', l'article ja donava a entendre que un valor de clusters molt elevat careix de sentit
-'manhattan', és l'opció per defecte
-'means', estem utilitzant l'algorisme de k-means
-'hc', hem decidit que l'inicialització sigui jeràrquica en lloc de a l'atzar per a millors resultats
-'verbose = TRUE', d'aquesta manera mostrem el progrés d'aquest procés tan llarg
-'seed = 123', per a una facil replicació dels resultats
+
+The chosen elements have been: 'backward', because we were instructed to
+during class; 'ks = 2:3', as the paper itself led us to believe that a high
+number of clusters would lead to inaccurate  results; 'manhattan', the default
+option; 'means', as we are using the k-means algorithm; 'hc', we decided on 
+a jerarquical inicialitzation over a random one for better results;
+'verbose = TRUE', so show the progress of this long process; 'seed=123' for replicability.
+
 
 \section{Results}
 Using plot() and summary() methods in the miclust package, provide plots1 and tables
@@ -146,23 +158,25 @@ percentage of times each variable is selected among the imputed data sets, in de
 order2. Explain how you set all arguments in all functions and methods you use. Show
 your code.
 
-<<plot1, echo=TRUE, fig.cap="Frequencia del nombre de clusters">>=
+
+<<plot1, echo=TRUE, fig.cap="Number of clusters frequency", fig.width=6, fig.height=3, fig.pos = 'H'>>=
 plot(copd_miclustdata, metric="nclfreq", col.nclfreq = "blue")
 @
 
-<<plot2, echo=TRUE, fig.cap="Valor de CritCF segons el nombre de clusters">>=
+<<plot2, echo=TRUE, fig.cap="CritCF value versus number of clusters", fig.width=6, fig.height=6, fig.pos = 'H'>>=
 plot(copd_miclustdata, metric="critcf", col.critcf = "orange")
 @
 
-<<plot3, echo=TRUE, fig.cap="Freqüència de selecció del nombre de variables en les imputacions múltiples">>=
+<<plot3, echo=TRUE, fig.cap="Frequency of the number of times each variable being selected furing multiple imputation", fig.width=6, fig.height=4, fig.pos = 'H'>>=
 plot(copd_miclustdata, metric="nvarfreq", col.nvarfreq = "forestgreen")
 @
 
-<<plot4, echo=TRUE, fig.cap="Freqüència de selecció de les variables en les imputacions múltiples">>=
+<<plot4, echo=TRUE, fig.cap="Frequency of each variable being selected during multiple imputation", fig.width=6, fig.height=4, fig.pos = 'H'>>=
 plot(copd_miclustdata, metric="varsel", col.varsel = "gray")
 @
 
-Resposta: Els plots només calia definir els colors per a mostrar-ho
+We only needed to define the colors to show the plots.
+
 
 <<mytable1, echo=TRUE, results = 'asis'>>=
 
@@ -179,7 +193,8 @@ rownames(resum_prob) <- c("k = 2, Cluster 1",
 
 modtable <- xtable(resum_prob,
                    digits = c(0, 3, 3, 3, 3, 3),
-                   caption = "Distribution of the Frequencies of Assignment (Proportions) for Each Cluster (for k = 2 and k = 3)",
+                   caption = "Distribution of the Frequencies of Assignment
+                   (Proportions) for Each Cluster (for k = 2 and k = 3)",
                    label = "tab:frequency")
 # cosmetics for table head (LaTeX slash (\) must be doubled inside a R chunk):
 colnames(modtable) <- c("\\multicolumn{1}{c}{\\bf Minimum}",
@@ -194,14 +209,16 @@ print(modtable,
       size = "footnotesize",
       include.rownames = TRUE,
       include.colnames = TRUE,
-      floating = TRUE,                 # whether \begin{table} should be created (TRUE) or not (FALSE)
-      sanitize.text.function = force)  # important to treat content of columns as latex function
-
+      floating = TRUE,                 # whether \begin{table}
+      # should be created (TRUE) or not (FALSE)
+      # important to treat content
+      # of columns as latex function
+      sanitize.text.function = force) 
 @
 
-Resposta: Per fer la primera taula hem utilitzat la funció 'summary()' per als 
-diferents valors de 'k', i utilitzant la plantilla per a fer taules proporcionada
-pel professorat, hem mostrat aquest resultat.
+Answer: To create the first table we use the 'summary()' function for the
+differnet k-values, and using a template provided by the professor, we show the
+desired results.
 
 <<mytable2, echo=TRUE, results = 'asis'>>=
 
@@ -223,7 +240,8 @@ modtable <- xtable(taula3,
 # cosmetics for table head (LaTeX slash (\) must be doubled inside a R chunk):
 colnames(modtable) <- c("\\multicolumn{1}{c}{\\bf Variable}",
                         "\\multicolumn{1}{c}{\\bf \\% of Subjects With Missing Values}",
-                        paste0("\\multicolumn{1}{c}{\\bf Cluster 1 (n = ", n[1], ")}"), #paste0 per a ajuntar strings
+                        paste0("\\multicolumn{1}{c}{\\bf Cluster 1 (n = ", n[1], ")}"), 
+                        #paste0 per a ajuntar strings
                         paste0("\\multicolumn{1}{c}{\\bf Cluster 2 (n = ", n[2], ")}"))
 
 # format and print the table:
@@ -232,16 +250,25 @@ print(modtable,
       size = "footnotesize",
       include.rownames = FALSE,
       include.colnames = TRUE,
-      floating = TRUE,                 # whether \begin{table} should be created (TRUE) or not (FALSE)
-      sanitize.text.function = force)  # important to treat content of columns as latex function
+      # whether \begin{table} should be created (TRUE) or not (FALSE)
+      floating = TRUE,                 
+      # important to treat content of columns as latex function
+      sanitize.text.function = force)  
 
 @
 
-Resposta: Per a la segona taula no hem inclós els 'F values' ni hem utilitzat les dades
-sense processar per a fer un anàlisi dels valors mitjans, però hem inclós els altres
-resultats presents en la funció 'summary()' per a mostrar el mateix contingut per a 
-les dades imputades. Per a fer-ho ha calgut crear un 'dataframe' auxiliar del 'summary' 
-per a obtenir un altre amb les variables que dessitjem. A més hem obtingut el valor medià
-dels clusters tal i com es fa en el paper original.
+We haven't included the 'F values' in the second table, nor used
+the unprocessed data for the average-value analisys, but we have decided to
+show other results from the 'summary()' function, those we considered relevant
+to the imputated data. To do this, an auxiliary dataframa of the 'summary' was
+needed. Furthermore, we obtained the mean valur of the clusters just like the 
+original paper did.
+
+\section{Report}
+
+
+
+
+\section{Use of artificial intelligence}
 
 \end{document}
