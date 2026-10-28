@@ -125,7 +125,7 @@ when using the mice() function. Show your code
 \end{kframe}
 \end{knitrout}
 
-We've kept using the same methodology and the prediction matrix, with the exception of id as it isn't relevant for this process.
+Wekept the same methodology and the prediction matrix, with the exception of id as it isn't relevant for this process.
 The variable 'm' encodes de number of imputations, 'printFlag' is used to show the current imputation although it's not important for the results,
 and the 'seed' is set up for replicability. 
 
@@ -305,7 +305,7 @@ We only needed to define the colors to show the plots.
       \hlkwc{sanitize.text.function} \hldef{= force)}
 \end{alltt}
 \end{kframe}% latex table generated in R 4.6.1 by xtable 1.8-8 package
-% Wed Oct 28 16:59:27 2026
+% Wed Oct 28 18:23:33 2026
 \begin{table}[ht]
 \centering
 \begingroup\footnotesize
@@ -367,7 +367,7 @@ desired results.
       \hlkwc{sanitize.text.function} \hldef{= force)}
 \end{alltt}
 \end{kframe}% latex table generated in R 4.6.1 by xtable 1.8-8 package
-% Wed Oct 28 16:59:27 2026
+% Wed Oct 28 18:23:33 2026
 \begin{table}[ht]
 \centering
 \begingroup\footnotesize
@@ -409,9 +409,96 @@ original paper did.
 
 \section{Report}
 
+The final analysis divided the dataset in \textbf{2 clusters}. We can see in
+Figure~\ref{fig:plot1} that k=2 (having 2 clusters) is chosen every time, thus we can
+conclude without uncertainty that we can divide the dataset in two clusters.
+Table~\ref{tab:descr} details the size of each of these clusters: n=186 for the first
+cluster and n=156 for the second one.
+
+
 
 
 
 \section{Use of artificial intelligence}
+
+Artificial Intelligence, more accurately Large Language Models (LLMs), have been
+used to revise and enhance the code displayed in this paper. Here is the exact
+prompt and answer of the one time they were used:
+
+\textbf{Prompt:} 
+
+\begin{verbatim}
+Tinc aquest codi en R:
+resultat_mice<-complete(imp, action="all", include=TRUE)
+categorics_amb_ordre <- c("sin11_v1", "iam_chv1", "sin15_v1", "sin7_v1", "sin8_v1","cccs1_v0", "vtit_catv1", "urg_ambv0", "sin5_v1", "sin6_v1")
+categorics_sense_ordre <- c("graudisn_v1")
+for (i in 1:(M+1))
+{
+  for (j in categorics_amb_ordre)
+  {
+    resultat_mice[[i]][[j]] <- as.numeric(levels(resultat_mice[[i]][[j]]))[resultat_mice[[i]][[j]]]
+  }
+  for (j in categorics_sense_ordre)
+  {
+    resultat_mice[[i]][[j]] <- as.numeric(levels(resultat_mice[[i]][[j]]))[resultat_mice[[i]][[j]]]
+  }
+}
+miclustdata<-getdata(resultat_mice)
+
+
+Saps si es pot optimitzar i simplificar? També voldria eliminar la columna id de cada conjunt de dades imputat abans de crear miclustdata.
+\end{verbatim}
+
+
+
+\textbf{Answer:}
+
+\begin{verbatim}
+Sí. En el teu codi original hi ha dues simplificacions clares:
+
+1. categorics_amb_ordre i categorics_sense_ordre reben exactament el mateix tractament, per tant es poden unir en un únic vector.
+2. Es poden evitar els for utilitzant lapply(), cosa que fa el codi més compacte i independent de M.
+3. Pots eliminar la columna id dins del mateix procés.
+
+Una possible versió simplificada seria:
+
+
+resultat_mice <- complete(imp, action = "all", include = TRUE)
+
+
+categoriques <- c(
+  "sin11_v1", "iam_chv1", "sin15_v1", "sin7_v1", "sin8_v1",
+  "cccs1_v0", "vtit_catv1", "urg_ambv0", "sin5_v1",
+  "sin6_v1", "graudisn_v1"
+)
+
+resultat_mice <- lapply(resultat_mice, function(d) {
+
+  # Eliminar la variable identificadora
+  d$id <- NULL
+
+  # Convertir factors a numèrics
+  d[categoriques] <- lapply(
+    d[categoriques],
+    function(x) as.numeric(as.character(x))
+  )
+
+  d
+})
+
+miclustdata <- getdata(resultat_mice)
+
+
+Aquesta versió manté la mateixa funcionalitat sempre que les variables categòriques tinguin nivells numèrics (per exemple "0", "1", "2", ...), elimina la variable id i evita haver de controlar explícitament el nombre d'imputacions M.
+\end{verbatim}
+
+
+\textbf{Model and Version:} It was generated using M365 Copilot, which is powered by ChatGPT-5
+
+\textbf{Reflection:} This project has been aided by LLMs in a specific instance 
+of code checking and improvement. Our use of AI has been contained and minor,
+as, in an academic environment where our goal is to learn we consider the use of
+these tools counter-productive. Thus, our final product and the process of creating
+it have not been extensively influenced by AI.
 
 \end{document}
