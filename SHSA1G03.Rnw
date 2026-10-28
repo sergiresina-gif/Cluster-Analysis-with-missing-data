@@ -285,7 +285,7 @@ most selected include activityv1, fvcp_postv1, ic_prepv1, rv_prepv1, sin15_v1,
 vc_prepv1, po2_v1, vas1_v1, index_barthel2v1 and cpcr_mg_l_mediav1. Table~{tab:descr}
 lists the variables used in the descriptive cluster.
 
-In Figure~\ref{fig}, we can see that, for every cluster with (k=2) and (k=3), at least
+In Figure~\ref{fig:mytable1}, we can see that, for every cluster with (k=2) and (k=3), at least
 three-quarters of its instances are assigned to the same cluster across all imputations. 
 Therefore, assuming that the missing data follow the proposed distributions, at least 75\% 
 of all instances don't have uncertainty.
