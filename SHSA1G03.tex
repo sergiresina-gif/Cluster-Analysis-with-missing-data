@@ -53,9 +53,9 @@
 \usepackage[margin=2.5cm]{geometry}
 \usepackage{float}
 
-\title{My title}
-\author{My name}
-\date{\today}
+\title{Estadística en les Ciències de la Salut \\ Assignment 1; Group 03}
+\author{1711342 Roger Guitart Casals; 1707055 Sergi Resina Xirgo \\ 1705323 Lucca Bergonzini Flores; 1702697 Àlex Vega Tomàs}
+\date{28/10/2026}
 \IfFileExists{upquote.sty}{\usepackage{upquote}}{}
 \begin{document}
 %\SweaveOpts{concordance=TRUE}
@@ -63,7 +63,7 @@
 
 \section{Introduction}
 
-In this study we will investigate how to use R packages such as mice and miclust to apply statistical tools for missing data. Our goal is to generate clusters to analyze and visualize our dataset. This dataset is a subset of the variables studied in the original paper by Basagaña et al.CITA AQUI 
+In this study we will investigate how to use R packages such as mice and miclust to apply statistical tools for missing data. Our goal is to generate clusters to analyze and visualize our dataset. This dataset is a subset of the variables studied in the original paper by Basagaña et al.\cite{paper}
 
 
 \section{Analysis}
@@ -83,7 +83,7 @@ In this study we will investigate how to use R packages such as mice and miclust
 \hldef{max_missing} \hlkwb{<-} \hlkwd{sprintf}\hldef{(}\hlsng{"%.1f"}\hldef{,} \hlkwd{max}\hldef{(missing_per_variable))}
 
 \hldef{pct_variables_lt5} \hlkwb{<-} \hlkwd{sprintf}\hldef{(}\hlsng{"%.1f"}\hldef{,} \hlkwd{mean}\hldef{(missing_per_variable} \hlopt{<} \hlnum{5}\hldef{)} \hlopt{*} \hlnum{100}\hldef{)} \hlcom{# mean}
-\hlcom{# calcula la proporció de true}
+\hlcom{# computes the proportion of TRUE values}
 \hlcom{# equivalent: AA <- sprintf("%.1f", sum((missing_per_variable < 5))/n_variables * 100)}
 \hlcom{# true=1, false=0}
 
@@ -118,15 +118,15 @@ when using the mice() function. Show your code
 \hldef{pred[}\hlsng{"id"}\hldef{, ]} \hlkwb{<-} \hlnum{0} \hlcom{# we don't want "id" to be imputed}
 \hldef{pred[,} \hlsng{"id"}\hldef{]} \hlkwb{<-} \hlnum{0} \hlcom{# we don't want "id" to be predictor}
 
-\hlcom{# Fem les 100 imputacions:}
+\hlcom{# Perform the 100 imputations:}
 \hldef{imp} \hlkwb{<-} \hlkwd{mice}\hldef{(copd,} \hlkwc{method} \hldef{= meth,} \hlkwc{predictorMatrix} \hldef{= pred,} \hlkwc{m} \hldef{=} \hlnum{100}\hldef{,}
             \hlkwc{printFlag} \hldef{=} \hlnum{FALSE}\hldef{,} \hlkwc{seed} \hldef{=} \hlnum{123}\hldef{)}
 \end{alltt}
 \end{kframe}
 \end{knitrout}
 
-Wekept the same methodology and the prediction matrix, with the exception of id as it isn't relevant for this process.
-The variable 'm' encodes de number of imputations, 'printFlag' is used to show the current imputation although it's not important for the results,
+We kept the same methodology and the predictor matrix, with the exception of id as it isn't relevant for this process.
+The variable 'm' encodes the number of imputations, 'printFlag' is used to show the current imputation although it's not important for the results,
 and the 'seed' is set up for replicability. 
 
 
@@ -134,7 +134,7 @@ and the 'seed' is set up for replicability.
 
 Reproduce the original analysis in the paper using the miclust package to integrate multiple
 imputation in the cluster analysis. Apply the proposed framework using the same setting
-than in the original analysis.
+as in the original analysis.
 
 To do that, follow these steps:
 
@@ -147,7 +147,7 @@ explanation of the data processing you did to get that list. Show your code.
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
 \hldef{resultat_mice} \hlkwb{<-} \hlkwd{complete}\hldef{(imp,} \hlkwc{action} \hldef{=} \hlsng{"all"}\hldef{,} \hlkwc{include} \hldef{=} \hlnum{TRUE}\hldef{)}
-\hlcom{# action = "all" ja em posa les dades incials com a primer element}
+\hlcom{# action = "all" already puts the original data as the first element}
 
 \hldef{categoriques} \hlkwb{<-} \hlkwd{c}\hldef{(}
   \hlsng{"sin11_v1"}\hldef{,} \hlsng{"iam_chv1"}\hldef{,} \hlsng{"sin15_v1"}\hldef{,} \hlsng{"sin7_v1"}\hldef{,} \hlsng{"sin8_v1"}\hldef{,}
@@ -162,7 +162,7 @@ explanation of the data processing you did to get that list. Show your code.
   \hldef{d}
 \hldef{\})}
 
-\hldef{miclustdata} \hlkwb{<-} \hlkwd{getdata}\hldef{(resultat_mice)} \hlcom{# adapta les dades al format de miclust}
+\hldef{miclustdata} \hlkwb{<-} \hlkwd{getdata}\hldef{(resultat_mice)} \hlcom{# adapts the data to the miclust format}
 \end{alltt}
 \end{kframe}
 \end{knitrout}
@@ -182,7 +182,7 @@ explain how and why you set all arguments in the miclust() function.
 \begin{knitrout}
 \definecolor{shadecolor}{rgb}{0.969, 0.969, 0.969}\color{fgcolor}\begin{kframe}
 \begin{alltt}
-\hlcom{# Segon apartat:  }
+\hlcom{# Second part:}
 \hldef{copd_miclustdata} \hlkwb{<-} \hlkwd{miclust}\hldef{(}\hlkwc{data} \hldef{= miclustdata,}\hlkwc{search} \hldef{=} \hlsng{"backward"}\hldef{,}
                             \hlkwc{ks} \hldef{=} \hlnum{2}\hlopt{:}\hlnum{3}\hldef{,}
                             \hlkwc{distance} \hldef{=} \hlsng{"manhattan"}\hldef{,}
@@ -208,15 +208,15 @@ The chosen elements have been: 'backward', because we were instructed to
 during class; 'ks = 2:3', as the paper itself led us to believe that a high
 number of clusters would lead to inaccurate  results; 'manhattan', the default
 option; 'means', as we are using the k-means algorithm; 'hc', we decided on 
-a jerarquical inicialitzation over a random one for better results;
-'verbose = TRUE', so show the progress of this long process; 'seed=123' for replicability.
+a hierarchical initialization over a random one for better results;
+'verbose = TRUE', to show the progress of this long process; 'seed=123' for replicability.
 
 
 \section{Results}
-Using plot() and summary() methods in the miclust package, provide plots1 and tables
-for the results similar than those shown in the original paper. Also, show a barplot for the
+Using plot() and summary() methods in the miclust package, provide plots\textsubscript{1} and tables
+for the results similar to those shown in the original paper. Also, show a barplot for the
 percentage of times each variable is selected among the imputed data sets, in decreasing
-order2. Explain how you set all arguments in all functions and methods you use. Show
+order\textsubscript{2}. Explain how you set all arguments in all functions and methods you use. Show
 your code.
 
 
@@ -305,7 +305,7 @@ We only needed to define the colors to show the plots.
       \hlkwc{sanitize.text.function} \hldef{= force)}
 \end{alltt}
 \end{kframe}% latex table generated in R 4.6.1 by xtable 1.8-8 package
-% Wed Oct 28 18:23:33 2026
+% Wed Oct 28 22:06:23 2026
 \begin{table}[ht]
 \centering
 \begingroup\footnotesize
@@ -328,7 +328,7 @@ k = 2, Cluster 1 & 0.520 & 1.000 & 1.000 & 1.000 & 1.000 \\
 
 
 Answer: To create the first table we use the 'summary()' function for the
-differnet k-values, and using a template provided by the professor, we show the
+different k-values, and using a template provided by the professor, we show the
 desired results.
 
 \begin{kframe}
@@ -342,7 +342,7 @@ desired results.
                      \hlkwc{check.names} \hldef{=} \hlnum{FALSE}
 \hldef{)}
 
-\hldef{n} \hlkwb{<-} \hldef{res2}\hlopt{$}\hldef{clusterssize[,} \hlsng{"50%"}\hldef{]} \hlcom{# Valor del nombre medià dels clusters}
+\hldef{n} \hlkwb{<-} \hldef{res2}\hlopt{$}\hldef{clusterssize[,} \hlsng{"50%"}\hldef{]} \hlcom{# Value of the median cluster size}
 
 \hldef{modtable} \hlkwb{<-} \hlkwd{xtable}\hldef{(taula3,}
                    \hlkwc{digits} \hldef{=} \hlkwd{c}\hldef{(}\hlnum{0}\hldef{,} \hlnum{0}\hldef{,} \hlnum{2}\hldef{,} \hlnum{2}\hldef{,} \hlnum{2}\hldef{),}
@@ -352,7 +352,7 @@ desired results.
 \hlkwd{colnames}\hldef{(modtable)} \hlkwb{<-} \hlkwd{c}\hldef{(}\hlsng{"\textbackslash{}\textbackslash{}multicolumn\{1\}\{c\}\{\textbackslash{}\textbackslash{}bf Variable\}"}\hldef{,}
                         \hlsng{"\textbackslash{}\textbackslash{}multicolumn\{1\}\{c\}\{\textbackslash{}\textbackslash{}bf \textbackslash{}\textbackslash{}% of Subjects With Missing Values\}"}\hldef{,}
                         \hlkwd{paste0}\hldef{(}\hlsng{"\textbackslash{}\textbackslash{}multicolumn\{1\}\{c\}\{\textbackslash{}\textbackslash{}bf Cluster 1 (n = "}\hldef{, n[}\hlnum{1}\hldef{],} \hlsng{")\}"}\hldef{),}
-                        \hlcom{#paste0 per a ajuntar strings}
+                        \hlcom{# paste0 to concatenate strings}
                         \hlkwd{paste0}\hldef{(}\hlsng{"\textbackslash{}\textbackslash{}multicolumn\{1\}\{c\}\{\textbackslash{}\textbackslash{}bf Cluster 2 (n = "}\hldef{, n[}\hlnum{2}\hldef{],} \hlsng{")\}"}\hldef{))}
 
 \hlcom{# format and print the table:}
@@ -367,7 +367,7 @@ desired results.
       \hlkwc{sanitize.text.function} \hldef{= force)}
 \end{alltt}
 \end{kframe}% latex table generated in R 4.6.1 by xtable 1.8-8 package
-% Wed Oct 28 18:23:33 2026
+% Wed Oct 28 22:06:24 2026
 \begin{table}[ht]
 \centering
 \begingroup\footnotesize
@@ -401,20 +401,37 @@ activityv1 & 1.17 & 35.80 & 60.79 \\
 
 
 We haven't included the 'F values' in the second table, nor used
-the unprocessed data for the average-value analisys, but we have decided to
-show other results from the 'summary()' function, those we considered relevant
-to the imputated data. To do this, an auxiliary dataframa of the 'summary' was
-needed. Furthermore, we obtained the mean valur of the clusters just like the 
+the unprocessed data for the average-value analysis, but we have decided to
+show other results from the 'summary()' function, which we considered relevant
+to the imputed data. To do this, an auxiliary dataframe of the 'summary' was
+needed. Furthermore, we obtained the mean value of the clusters just like the 
 original paper did.
 
 \section{Report}
 
-The final analysis divided the dataset in \textbf{2 clusters}. We can see in
+The final analysis divided the dataset into \textbf{2 clusters}. We can see in
 Figure~\ref{fig:plot1} that k=2 (having 2 clusters) is chosen every time, thus we can
-conclude without uncertainty that we can divide the dataset in two clusters.
+conclude without uncertainty that we can divide the dataset into two clusters.
 Table~\ref{tab:descr} details the size of each of these clusters: n=186 for the first
 cluster and n=156 for the second one.
 
+The relabeling of the clusters over multiple imputations (the same cluster being
+labelled differently in different imputations) is handled internally by the
+\textbf{miclust} package, as detailed in its documentation. \cite{source_code}
+
+Figure~\ref{fig:plot3} shows how many variables were selected across the
+imputations: an average of 16.5, with a median of 17, standard deviation of
+0.8 and an interquartile range of 16-17. Thus, the final subset contains 17
+variables and the uncertainty over this choice is low.
+Figure~\ref{fig:plot4} shows us the selection frequency for each variable: the
+most selected include activityv1, fvcp\_postv1, ic\_prepv1, rv\_prepv1, sin15\_v1,
+vc\_prepv1, po2\_v1, vas1\_v1, index\_barthel2v1 and cpcr\_mg\_l\_mediav1. Table~\ref{tab:descr}
+lists the variables used in the descriptive cluster.
+
+In Table~\ref{tab:frequency}, we can see that, for each cluster when k = 2 and k = 3, at least
+three-quarters of its instances are assigned to the same cluster across all imputations. 
+Therefore, assuming that the missing data follow the proposed distributions, at least 75\% 
+of all instances don't have uncertainty.
 
 
 
@@ -430,23 +447,27 @@ prompt and answer of the one time they were used:
 \begin{verbatim}
 Tinc aquest codi en R:
 resultat_mice<-complete(imp, action="all", include=TRUE)
-categorics_amb_ordre <- c("sin11_v1", "iam_chv1", "sin15_v1", "sin7_v1", "sin8_v1","cccs1_v0", "vtit_catv1", "urg_ambv0", "sin5_v1", "sin6_v1")
+categorics_amb_ordre <- c("sin11_v1", "iam_chv1", "sin15_v1", "sin7_v1",
+"sin8_v1","cccs1_v0", "vtit_catv1", "urg_ambv0", "sin5_v1", "sin6_v1")
 categorics_sense_ordre <- c("graudisn_v1")
 for (i in 1:(M+1))
 {
   for (j in categorics_amb_ordre)
   {
-    resultat_mice[[i]][[j]] <- as.numeric(levels(resultat_mice[[i]][[j]]))[resultat_mice[[i]][[j]]]
+    resultat_mice[[i]][[j]] <- as.numeric(levels(resultat_mice[[i]][[j]]))
+    [resultat_mice[[i]][[j]]]
   }
   for (j in categorics_sense_ordre)
   {
-    resultat_mice[[i]][[j]] <- as.numeric(levels(resultat_mice[[i]][[j]]))[resultat_mice[[i]][[j]]]
+    resultat_mice[[i]][[j]] <- as.numeric(levels(resultat_mice[[i]][[j]]))
+    [resultat_mice[[i]][[j]]]
   }
 }
 miclustdata<-getdata(resultat_mice)
 
 
-Saps si es pot optimitzar i simplificar? També voldria eliminar la columna id de cada conjunt de dades imputat abans de crear miclustdata.
+Saps si es pot optimitzar i simplificar? També voldria eliminar la columna
+id de cada conjunt de dades imputat abans de crear miclustdata.
 \end{verbatim}
 
 
@@ -456,8 +477,10 @@ Saps si es pot optimitzar i simplificar? També voldria eliminar la columna id d
 \begin{verbatim}
 Sí. En el teu codi original hi ha dues simplificacions clares:
 
-1. categorics_amb_ordre i categorics_sense_ordre reben exactament el mateix tractament, per tant es poden unir en un únic vector.
-2. Es poden evitar els for utilitzant lapply(), cosa que fa el codi més compacte i independent de M.
+1. categorics_amb_ordre i categorics_sense_ordre reben exactament el mateix tractament,
+   per tant es poden unir en un únic vector.
+2. Es poden evitar els for utilitzant lapply(), cosa que fa el codi
+   més compacte i independent de M.
 3. Pots eliminar la columna id dins del mateix procés.
 
 Una possible versió simplificada seria:
@@ -489,7 +512,10 @@ resultat_mice <- lapply(resultat_mice, function(d) {
 miclustdata <- getdata(resultat_mice)
 
 
-Aquesta versió manté la mateixa funcionalitat sempre que les variables categòriques tinguin nivells numèrics (per exemple "0", "1", "2", ...), elimina la variable id i evita haver de controlar explícitament el nombre d'imputacions M.
+Aquesta versió manté la mateixa funcionalitat sempre que les
+variables categòriques tinguin nivells numèrics (per exemple "0", "1", "2", ...),
+elimina la variable id i evita haver de controlar explícitament el nombre
+d'imputacions M.
 \end{verbatim}
 
 
@@ -497,8 +523,21 @@ Aquesta versió manté la mateixa funcionalitat sempre que les variables categò
 
 \textbf{Reflection:} This project has been aided by LLMs in a specific instance 
 of code checking and improvement. Our use of AI has been contained and minor,
-as, in an academic environment where our goal is to learn we consider the use of
+as, in an academic environment where our goal is to learn, we consider the use of
 these tools counter-productive. Thus, our final product and the process of creating
 it have not been extensively influenced by AI.
+
+\begin{thebibliography}{9}
+    \bibitem{paper}
+    X. Basagaña, J. Barrera-Gómez, M. Benet, JM. Antó, and J. Garcia-Aymerich.
+    \emph{A Framework for Multiple Imputation in Cluster Analysis.}
+    American Journal of Epidemiology, 177(7):718–725, 2013.
+    URL https://doi.org/10.1093/aje/kws289.
+    \bibitem{source_code}
+    J. Barrera-Gomez and X. Basagana.
+    \emph{miclust: Cluster Analysis in Multiple Imputed Datasets with Optional Variable Selection.}
+    R package version 1.2.8, 2022.
+    URL https://rdrr.io/cran/miclust/man/miclust.html.
+\end{thebibliography}
 
 \end{document}
